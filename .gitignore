@@ -1,0 +1,96 @@
+# ============================================================
+# Python
+# ============================================================
+
+# Entorno virtual de Python
+backend/.venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de cobertura y pruebas
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ============================================================
+# Django
+# ============================================================
+
+# Base de datos SQLite local
+backend/db.sqlite3
+backend/db.sqlite3-journal
+
+# Archivos de archivos estáticos generados
+backend/staticfiles/
+
+# Archivos cargados por los usuarios
+backend/media/
+
+# ============================================================
+# Variables de entorno y secretos
+# ============================================================
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# ============================================================
+# Node.js / React / Vite
+# ============================================================
+
+# Dependencias de Node
+frontend/node_modules/
+
+# Archivos generados por Vite
+frontend/dist/
+
+# Archivos de caché
+frontend/.vite/
+
+# ============================================================
+# Sistema operativo
+# ============================================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# ============================================================
+# Editores / IDE
+# ============================================================
+
+# Visual Studio Code
+.vscode/
+
+# Cursor
+.cursor/
+
+# JetBrains
+.idea/
+
+# ============================================================
+# Logs
+# ============================================================
+
+*.log
+logs/
+
+# ============================================================
+# Archivos temporales
+# ============================================================
+
+*.tmp
+*.temp
+*.swp
+*.swo
