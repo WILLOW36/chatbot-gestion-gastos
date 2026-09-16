@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+import dj_database_url
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,13 +25,26 @@ load_dotenv(BASE_DIR.parent / ".env")
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fd-18hmi68r=^r8x&sh3easwb&oz^x6+02&)l_xo73uii%ixh1'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if not SECRET_KEY:
+    raise ValueError(
+        "DJANGO_SECRET_KEY no está configurada."
+    )
 
-ALLOWED_HOSTS = []
+DEBUG = os.getenv(
+    "DJANGO_DEBUG",
+    "True",
+).lower() == "true"
 
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "127.0.0.1,localhost",
+    ).split(",")
+    if host.strip()
+]
 
 # Application definition
 
@@ -83,12 +99,23 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        ),
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -132,15 +159,24 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
 ]
 
-# Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+    SECURE_REFERRER_POLICY = "same-origin"
