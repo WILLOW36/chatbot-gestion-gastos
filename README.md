@@ -1,81 +1,83 @@
 # Chatbot de Gestión de Gastos
 
-Aplicación web desarrollada como proyecto personal sobre una experiencia real paraque se puedan registrar gastos de conductores mediante un chatbot.
+Aplicación web Full Stack para registrar gastos de conductores mediante un chatbot.
 
-El usuario se identifica con su número de cédula, selecciona la opción de registrar un gasto y envía una foto del recibo. La aplicación utiliza Google Gemini para extraer los datos principales del comprobante y luego permite confirmar el gasto antes de guardarlo.
-
-## ¿Qué hace?
-
-* Identifica al conductor por número de cédula.
-* Permite registrar un gasto desde una fotografía.
-* Extrae automáticamente NIT, comercio, monto, descripción y fecha.
-* Mantiene el estado de la conversación.
-* Guarda los gastos en la base de datos.
-* Permite confirmar el registro desde el chatbot.
+El usuario se identifica, envía una foto del recibo, revisa los datos extraídos y confirma el gasto. El sistema también permite tomar una nueva foto si la información no es correcta.
 
 ## Tecnologías
 
-**Backend**
+- Python
+- Django
+- Django REST Framework
+- React
+- Vite
+- JavaScript
+- SQLite
+- Google Gemini API
+- Git / GitHub
 
-* Python
-* Django
-* Django REST Framework
-* SQLite
-
-**Frontend**
-
-* React
-* Vite
-* JavaScript
-* CSS
-
-**IA**
-
-* Google Gemini API
-* SDK `google-genai`
-* Modelo configurado mediante `GEMINI_MODEL`
-
-## Cómo funciona
+## Arquitectura
 
 ```text
-Cédula
+React
   ↓
-Menú
+Django REST API
   ↓
-Registrar gasto
+ConversationService
   ↓
-Foto del recibo
+ReceiptExtractionFactory
+  ├── Mock
+  └── Gemini
   ↓
-Google Gemini
+ExpenseService
   ↓
-Datos extraídos
-  ↓
-Confirmación
-  ↓
-Gasto registrado
+SQLite
 ```
 
-## Ejecutar el proyecto
+### Proveedores de extracción
 
-### 1. Clonar
+El proyecto permite seleccionar el proveedor mediante `AI_PROVIDER`.
 
-```bash
-git clone <URL_DEL_REPOSITORIO>
-cd chatbot
-```
-
-### 2. Configurar Gemini
-
-Crear el archivo `.env` en la raíz:
+#### Modo demo
 
 ```env
+AI_PROVIDER=mock
+```
+
+No requiere API externa y permite probar el proyecto localmente con datos simulados.
+
+#### Modo Gemini
+
+```env
+AI_PROVIDER=gemini
 GEMINI_API_KEY=tu_clave_de_gemini
 GEMINI_MODEL=gemini-flash-lite-latest
 ```
 
-No subir nunca el archivo `.env` al repositorio.
+## Instalación
 
-### 3. Backend
+### 1. Clonar
+
+```bash
+git clone https://github.com/WILLOW36/chatbot-gestion-gastos.git
+cd chatbot-gestion-gastos
+```
+
+### 2. Configurar Backend
+
+Crear `.env` en la raíz del proyecto.
+
+Para probar localmente:
+
+```env
+AI_PROVIDER=mock
+DJANGO_SECRET_KEY=tu_clave_secreta
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Instalar dependencias:
 
 ```powershell
 cd backend
@@ -86,11 +88,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Backend:
-
-`http://127.0.0.1:8000/`
-
-### 4. Frontend
+### 3. Configurar Frontend
 
 En otra terminal:
 
@@ -107,97 +105,62 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-Frontend:
+Aplicación disponible en:
 
-`http://localhost:5173/`
+```text
+http://localhost:5173/
+```
 
-## Probar el chatbot
+## Prueba rápida
 
-Para probar rápidamente el flujo se puede utilizar la imagen:
+Imagen de prueba:
 
 ```text
 backend/test_images/recibo_prueba.jpg
 ```
 
-Flujo de prueba:
+Flujo:
 
 ```text
 Hola
   ↓
 123456789
   ↓
-1
+1. Registrar un gasto
   ↓
 Enviar recibo
   ↓
-Revisar datos extraídos
+Revisar datos
   ↓
 Confirmar
 ```
 
-Durante el desarrollo se utilizó como conductor de prueba:
+Datos de prueba:
 
 ```text
 Cédula: 123456789
 Nombre: Juan Perez
 ```
 
-## API principal
+En modo `mock` se utilizan datos simulados para demostrar el flujo completo.
+
+## API
 
 ```text
 POST /api/conversations/
+GET  /api/conversations/<session_key>/
 ```
 
-Recibe mensajes e imágenes del chatbot.
+## Estado
 
-```text
-GET /api/conversations/<session_key>/
-```
+MVP funcional de extremo a extremo con:
 
-Permite consultar el estado actual de una sesión.
+- [x] Identificación de conductores
+- [x] Registro de gastos
+- [x] Carga de recibos
+- [x] Extracción de información
+- [x] Confirmación y rechazo
+- [x] Nueva fotografía
+- [x] Persistencia en SQLite
 
-## Estructura
-
-```text
-chatbot/
-├── backend/
-│   ├── conversations/
-│   ├── drivers/
-│   ├── expenses/
-│   ├── test_images/
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   └── package.json
-│
-├── .env.example
-├── .gitignore
-└── README.md
-```
-
-## Estado del proyecto
-
-Actualmente el MVP funciona de extremo a extremo:
-
-* React conectado con Django REST.
-* Identificación de conductores.
-* Registro de gastos.
-* Carga de recibos.
-* Extracción de información con Gemini.
-* Persistencia en SQLite.
-* Confirmación del gasto.
-
-## Próximas mejoras
-
-* Mejorar el flujo de rechazo y nueva fotografía.
-* Manejo más robusto de errores de Gemini.
-* Pruebas automatizadas.
-* Mejoras de sesión y recuperación de conversaciones.
-* Preparación para despliegue.
-
-## Nota
-
-Es un proyecto desarrollado Full Stack y está preparado actualmente para ejecución local y debe complementarse con controles adicionales antes de utilizarse en producción.
-
-
+Aplicación web desarrollada como proyecto personal sobre una experiencia real paraque se puedan registrar gastos de conductores mediante un chatbot.

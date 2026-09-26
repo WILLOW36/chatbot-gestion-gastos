@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || '/api'
+).replace(/\/$/, '')
+
 function App() {
   const [sessionKey] = useState(() => {
     const storedSessionKey = sessionStorage.getItem(
@@ -30,10 +34,29 @@ function App() {
 
   useEffect(() => {
     const loadSession = async () => {
+      const sessionInitialized =
+        sessionStorage.getItem(
+          'chatbot_session_initialized',
+        ) === 'true'
+
+      if (!sessionInitialized) {
+        return
+      }
+
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/conversations/${sessionKey}/`,
+          `${API_BASE_URL}/conversations/${sessionKey}/`,
         )
+
+        if (response.status === 404) {
+          sessionStorage.removeItem(
+            'chatbot_session_initialized',
+          )
+
+          setCurrentStep('GREETING')
+
+          return
+        }
 
         if (!response.ok) {
           throw new Error(
@@ -45,10 +68,10 @@ function App() {
 
         setCurrentStep(sessionData.current_step)
       } catch (requestError) {
-          console.error(requestError)
-        }
+        console.error(requestError)
       }
-      
+    }
+
     loadSession()
   }, [sessionKey])
   
@@ -73,7 +96,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/conversations/',
+        `${API_BASE_URL}/conversations/`,
         {
           method: 'POST',
           body: formData,
@@ -90,6 +113,11 @@ function App() {
       }
 
       const conversationData = data.data
+
+      sessionStorage.setItem(
+        'chatbot_session_initialized',
+        'true',
+      )
 
       setCurrentStep(conversationData.current_step)
 

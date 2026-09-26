@@ -11,7 +11,9 @@ from conversations.constants import (
 from conversations.services.session_service import SessionService
 from drivers.services.driver_service import DriverService
 from expenses.services.expense_service import ExpenseService
-from expenses.services.gemini_service import GeminiService
+from expenses.services.receipt_extraction_factory import (
+    ReceiptExtractionFactory,
+)
 
 
 class ConversationService:
@@ -32,7 +34,9 @@ class ConversationService:
         self.session_service = SessionService()
         self.driver_service = DriverService()
         self.expense_service = ExpenseService()
-        self.gemini_service = GeminiService()
+        self.receipt_extraction_service = (
+            ReceiptExtractionFactory.create()
+        )
 
     def process_message(
         self,
@@ -249,7 +253,7 @@ class ConversationService:
         )
         
         extracted_data = (
-            self.gemini_service.extract_receipt_data(
+            self.receipt_extraction_service.extract_receipt_data(
                 image_bytes=image_bytes,
                 mime_type=image.content_type,
             )
@@ -355,15 +359,13 @@ class ConversationService:
 
             self.session_service.update_step(
                 session=session,
-                step=ConversationSession.Step.DONE,
+                step=ConversationSession.Step.AWAITING_IMAGE,
             )
 
             return {
                 "session_key": session.session_key,
-                "current_step": ConversationSession.Step.DONE,
-                "message": (
-                    "Gasto rechazado correctamente."
-                ),
+                "current_step": ConversationSession.Step.AWAITING_IMAGE,
+                "message": AWAITING_IMAGE_MESSAGE,
             }
 
         return {
